@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import random
 
 def splitColumns(datafile):
    df = pd.read_csv(datafile, delimiter='	')
@@ -35,9 +36,6 @@ def extractFeatures(df,windowSize):
    featuresDF = pd.DataFrame(featureList)
    return featuresDF
 def plotFeatures(features):
-   X = features[['diff', 'std']]
-   kmeans = KMeans(n_clusters=2)
-   features['cluster'] = kmeans.fit_predict(X)
    plt.scatter(features['std'], features['diff'], c=features['cluster'], cmap='plasma')
    plt.xlabel('Standard Deviation')
    plt.ylabel('Maximum Difference Between Two Succesive Samples')
@@ -74,41 +72,37 @@ def plotSignal(Osignal,fileName,windowSize):#Plotting the signal mapping the pae
    # Show the plot
    plt.show()
 
-def plotFeatures(features):
-   plt.scatter(features['std'], features['diff'], c=features['cluster'], cmap='plasma')
-   plt.xlabel('Standard Deviation')
-   plt.ylabel('Maximum Difference Between Two Succesive Samples')
-   plt.title('K-Means Visualization')
-   plt.show()
-   return features
 
 def plotAverageNeurons(feauture, data):
-   allSpikes1 = []
-   for ind in feauture[feauture["cluster"] == 0]["peakIndex"]:
-    start = ind - 20
-    end = ind + 20
-    allSpikes1.append([data[start:end]])
-   allSpikes2 = []
-   for ind in feauture[feauture["cluster"] == 1]["peakIndex"]:
-    start = ind - 20
-    end = ind + 20
-    allSpikes2.append([data[start:end]])
+   clusters = np.unique(feauture["cluster"])
+
+   color = ["#"+''.join([random.choice('0369CEF') for j in range(6)])
+                for i in range(len(clusters))]
+
    avg_spikes = []
-   avg_spikes.append(np.average(allSpikes1, axis = 0)[0])
-   avg_spikes.append(np.average(allSpikes2, axis = 0)[0])
+   for cluster in clusters:
+       allSpikes = []
+       for ind in feauture[feauture["cluster"] == cluster]["peakIndex"]:
+           start = ind - 20
+           end = ind + 20
+           allSpikes.append([data[start:end]])
+       avg_spikes.append(np.average(allSpikes, axis = 0)[0])
+
+   time_points = np.arange(len(avg_spikes))
    indices = np.arange(len(avg_spikes[0]))
-   plt.plot(indices, avg_spikes[0], color='blue', label="neuron one")
-   plt.plot(indices, avg_spikes[1], color='red', label="neuron two")
+   for cluster in clusters:
+       plt.plot(indices, avg_spikes[cluster], color=color[cluster], label="neuron "+str(cluster+1))
    plt.xlabel('Time')
    plt.ylabel('Amplitude')
    plt.title('Single Spike Waveform')
    plt.legend()
+
    plt.grid(True)
    plt.show()
 
 def addClusters(features):
    X = features[['diff', 'std']]
-   kmeans = KMeans(n_clusters=2)
+   kmeans = KMeans(n_clusters=3)
    features['cluster'] = kmeans.fit_predict(X)
    return features
 
