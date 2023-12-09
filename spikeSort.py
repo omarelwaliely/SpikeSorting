@@ -83,12 +83,11 @@ def plotAverageNeurons(feauture, data):
    for cluster in clusters:
        allSpikes = []
        for ind in feauture[feauture["cluster"] == cluster]["peakIndex"]:
-           start = ind - 20
-           end = ind + 20
+           start = ind - 24
+           end = ind + 24
            allSpikes.append([data[start:end]])
        avg_spikes.append(np.average(allSpikes, axis = 0)[0])
 
-   time_points = np.arange(len(avg_spikes))
    indices = np.arange(len(avg_spikes[0]))
    for cluster in clusters:
        plt.plot(indices, avg_spikes[cluster], color=color[cluster], label="neuron "+str(cluster+1))
