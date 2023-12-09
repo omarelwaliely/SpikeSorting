@@ -43,34 +43,37 @@ def plotFeatures(features):
    plt.show()
 
 
-def plotSignal(Osignal,fileName,windowSize):#Plotting the signal mapping the paeak with a red colored point
+def plotSignal(Osignal,featuers,windowSize):
      
-   # Read the DataFrame from the CSV file
-   df = pd.read_csv(fileName)
+   
 
-   # Extract peaks and clusters from the dataframe
-   peaks = df['peakIndex'].values
-   clusters = df['cluster'].values
+   peaks = featuers['peakIndex'].values
+   clusters = featuers['cluster'].values
    unique_clusters = np.unique(clusters)
 
-   # Plot the signal
-   signal = Osignal.to_numpy()  # Replace 'YourSignalColumn' with the actual column name
-   plt.plot(signal, label='Signal')
-   cluster_colors = ['red', 'green', 'yellow']  # Add more colors as needed
+   valid_indices = (peaks <= 20000) & (np.arange(len(clusters)) <= 20000)
 
-   # Plot peaks with different colors for each cluster
+   valid_peaks = peaks[valid_indices]
+   valid_clusters = clusters[valid_indices]
+
+   signal = Osignal.iloc[:20000].to_numpy()
+   plt.plot(signal, label='Signal')
+
+   cluster_colors = ['red', 'green', 'yellow'] 
    for i, cluster in enumerate(unique_clusters):
-      cluster_peaks = peaks[clusters == cluster]
+      cluster_peaks = valid_peaks[valid_clusters == cluster]
       plt.scatter(cluster_peaks, signal[cluster_peaks], label=f'Cluster {cluster}', color=cluster_colors[i], marker='o')
 
-   # Customize the plot
-   plt.title('Signal with Clustered Peaks')
+   plt.title(f'Signal with Clustered Peaks (First {20000} samples)')
    plt.xlabel('Peak')
    plt.ylabel('Amplitude')
    plt.legend()
 
-   # Show the plot
    plt.show()
+
+
+
+
 
 
 def plotAverageNeurons(feauture, data):
@@ -114,12 +117,14 @@ def main():
    features1 = extractFeatures(first,windowSize)
    features1 = addClusters(features1)
    plotFeatures(features1)
-   plotSignal(first,"features1.csv",windowSize)
+   plotSignal(first,features1,windowSize)
    plotAverageNeurons(features1, first)
 
    features2 = extractFeatures(second,windowSize)
    features2 = addClusters(features2)
    plotFeatures(features2)
+   plotSignal(second,features2,windowSize)
+
    plotAverageNeurons(features2, second)
 
    #features1.to_csv("features1.csv",index = False)
